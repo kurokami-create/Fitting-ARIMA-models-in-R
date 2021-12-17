@@ -1,0 +1,204 @@
+---
+title: "Fitting ARIMA models to R datasets"
+---
+
+
+```{r JohnsonJohnson}
+library("datasets")
+library('forecast')
+JJ <- JohnsonJohnson
+JJ
+#It is a quarterly time series
+ts.plot(JJ, main = "JohnsonJohnson", xlab = "Year", ylab = "Share Price")
+#There is an upward trend in the values
+#From the graph, it can be deduced it is exponential
+JJlog<- log(JJ)#We use exponential smoothing to make the data linear
+ts.plot(JJ, main = "JohnsonJohnson", xlab = "Year", ylab = "log(Share Price)")
+
+JJ1 <- diff(JJlog, differences = 1) #The series is differenced in order to make it stationary i.e. constant mean and variance.
+plot(JJ1, main = "JJlog data differenced once", xlab = "Year")
+#plot the mean line for better visualisation
+abline(h = mean(JJ1), col = "red")
+#Plot the sd lines above and below the mean for better visualisation of the variance
+abline(h = mean(JJ1) + sd(JJ1),col = "steelblue", lwd = 3, lty = 2)
+abline(h = mean(JJ1) - sd(JJ1),col = "steelblue", lwd = 3, lty = 2)
+
+JJ2 <- diff(JJlog, differences = 2)
+plot.ts(JJ2, main = "JJlog data differenced twice", xlab = "Year")
+abline(h = mean(JJ2), col = "red")
+abline(h = mean(JJ2) + sd(JJ2),col = "steelblue", lwd = 3, lty = 2)
+abline(h = mean(JJ2) - sd(JJ2),col = "steelblue", lwd = 3, lty = 2)
+
+JJ3 <- diff(JJlog, differences = 3)
+plot.ts(JJ3, main = "JJlog data differenced thrice", xlab = "Year")
+abline(h = mean(JJ3), col = "red") 
+abline(h = mean(JJ3) + sd(JJ3),col = "steelblue", lwd = 3, lty = 2) 
+abline(h = mean(JJ3) - sd(JJ3),col = "steelblue", lwd = 3, lty = 2)
+JJ4 <- diff(JJlog, differences = 4)
+
+plot.ts(JJ4, main = "JJlog differenced four times", xlab = "Year")
+abline(h = mean(JJ4), col = "red")
+abline(h = mean(JJ4) + sd(JJ4),col = "steelblue", lwd = 3, lty = 2)
+abline(h = mean(JJ4) - sd(JJ4),col = "steelblue", lwd = 3, lty = 2)
+
+var(JJ1)
+var(JJ2)
+var(JJ3)
+var(JJ4)
+#var(JJ1) is the lowest, it can be concluded that d = 1
+
+jj1 <- arima(JJlog, order = c(1,1,1))
+jj2 <- arima(JJlog, order = c(1,1,2))
+jj3 <- arima(JJlog, order = c(2,1,1))
+jj4 <- arima(JJlog, order = c(2,1,2))
+jj5 <- arima(JJlog, order = c(3,1,1))
+jj6 <- arima(JJlog, order = c(3,1,2))
+jj7 <- arima(JJlog, order = c(2,1,3))
+jj8 <- arima(JJlog, order = c(3,1,3))
+jj9 <- arima(JJlog, order = c(4,1,1))
+jj10 <- arima(JJlog, order = c(4,1,2))
+jj11<- arima(JJlog, order = c(4,1,3))
+jj12<- arima(JJlog, order = c(4,1,4))
+
+jj1
+jj2
+jj3
+jj4
+jj5
+jj6
+jj7
+jj8
+jj9
+jj10
+jj11
+jj12
+#jj11 has the lowest AIC hence it can be concluded that JohnsonJohnson data is an ARIMA(4,1,3)
+tsdiag(jj11)
+#From the residual analysis, the model is suitable because:
+#1. Standardized residuals are random and have no trend
+#2. ACF of residuals are with in the significance levels, with only 1 out of 20 beyond them, which is expected.
+#3. There are high p-values suggesting a good model fit. (residuals are consistent with white noise)
+jjlogforecast <- predict(jj11,n.ahead=4)
+jjlogforecast #output predictions value are logarithmic
+
+#To transform them, we use 2.718 which is equal to e and round them to 2 d.p. as the original data
+jjforecast <- round(2.718^jjlogforecast$pred,2)
+jjforecast
+```
+```{r AirPassengers}
+AP <- AirPassengers
+AP
+
+#It is a monthly time series
+ts.plot(AP, main = "Air Passengers", xlab = "Year", ylab = "No. of Passengers")
+#The data has an upward trend as well as seasonal variation
+APlog <- log(AP) #We use exponential smoothing to make the data linear
+plot(APlog, main = "Air Passengers", xlab = "Year", ylab = "log(No. of Passengers)")
+
+
+#We difference up to the point where mean and variance are constant, and hence stationary
+AP1 <- diff(APlog, differences = 1)
+plot(AP1, main = "APlog data differenced once", xlab = "Year")
+abline(h = mean(AP1), col = "red")
+abline(h = mean(AP1) + sd(AP1),col = "steelblue", lwd = 3, lty = 2)
+abline(h = mean(AP1) - sd(AP1),col = "steelblue", lwd = 3, lty = 2)
+
+AP2 <- diff(APlog, differences = 2)
+plot(AP2, main = "APlog data differenced twice", xlab = "Year")
+abline(h = mean(AP2), col = "red")
+abline(h = mean(AP2) + sd(AP2),col = "steelblue", lwd = 3, lty = 2)
+abline(h = mean(AP2) - sd(AP2),col = "steelblue", lwd = 3, lty = 2)
+
+AP3 <- diff(APlog, differences = 3)
+plot(AP3, main = "APlog data differenced thrice", xlab = "Year")
+abline(h = mean(AP3), col = "red")
+abline(h = mean(AP3) + sd(AP3),col = "steelblue", lwd = 3, lty = 2)
+abline(h = mean(AP3) - sd(AP3),col = "steelblue", lwd = 3, lty = 2)
+
+AP4 <- diff(APlog, differences = 4)
+plot(AP4, main = "APlog data differenced four times", xlab = "Year")
+abline(h = mean(AP4), col = "red")
+abline(h = mean(AP4) + sd(AP4),col = "steelblue", lwd = 3, lty = 2)
+abline(h = mean(AP4) - sd(AP4),col = "steelblue", lwd = 3, lty = 2)
+
+var(AP1)
+var(AP2)
+var(AP3)
+var(AP4)
+
+#After a few iterations, d = 1 has the lowest variance while maintaining constant mean and variance.
+aparima <- auto.arima(AP, d = 1, max.p = 5, max.q = 5)
+aparima
+#The most appropriate model for the data is an ARIMA(2,1,1) with 1 seasonal difference of frequency 12
+tsdiag(aparima)
+#From the residual analysis, the model is suitable because:
+#1. Standardized residuals are random and have no trend
+#2. ACF of residuals are with in the significance levels, with only 1 out of 20 beyond them, which is expected.
+#3. There are high p-values suggesting a good model fit. (residuals are consistent with white noise)
+
+aparimaforecast <- predict(aparima, n.ahead = 12)
+aparimaforecast
+```
+
+```{r uspop}
+UP <- uspop
+UP
+ts.plot(UP, main ="US Population", xlab = "Year", ylab = "Population")
+# The data consists of 19 values with an upward trend
+UPlog <- log(UP)
+ts.plot(UPlog, main ="US Population", xlab = "Year", ylab = "log(Population)")
+UP1<- diff(UPlog, differences = 1)
+plot.ts(UP1, main ="US Population differenced once", xlab = "Year")
+abline(h = mean(UP1), col = "red")
+abline(h = mean(UP1) + sd(UP1),col = "steelblue", lwd = 3, lty = 2)
+abline(h = mean(UP1) - sd(UP1),col = "steelblue", lwd = 3, lty = 2)
+
+UP2 <- diff(UPlog, differences = 2)
+plot.ts(UP2, main ="US Population differenced twice", xlab = "Year")
+abline(h = mean(UP2), col = "red")
+abline(h = mean(UP2) + sd(UP2),col = "steelblue", lwd = 3, lty = 2)
+abline(h = mean(UP2) - sd(UP2),col = "steelblue", lwd = 3, lty = 2)
+
+UP3 <- diff(UPlog, differences = 3)
+plot.ts(UP3, main ="US Population differenced thrice", xlab = "Year")
+abline(h = mean(UP3), col = "red")
+abline(h = mean(UP3) + sd(UP3),col = "steelblue", lwd = 3, lty = 2)
+abline(h = mean(UP3) - sd(UP3),col = "steelblue", lwd = 3, lty = 2)
+
+UP4 <- diff(UPlog, differences = 4)
+plot.ts(UP4, main = "US Population differenced four times", xlab = "Year")
+abline(h = mean(UP4), col = "red")
+abline(h = mean(UP4) + sd(UP4),col = "steelblue", lwd = 3, lty = 2)
+abline(h = mean(UP4) - sd(UP4),col = "steelblue", lwd = 3, lty = 2)
+
+var(UP1)
+var(UP2)
+var(UP3)
+var(UP4)
+
+#UP2 has the lowest variance, it can be conclude that d = 2
+up1 <- arima(UPlog, c(0,2,0))
+up1
+up2 <- arima(UPlog, c(1,2,0))
+up2
+up3 <- arima(UPlog, c(0,2,1))
+up3
+up4 <- arima(UPlog, c(1,2,0))
+up4
+
+#up1 has the lowest AIC hence best fit for uspop data i.e. an ARIMA(0,2,0)
+tsdiag(up1)
+#From the residual analysis, the model is suitable because:
+#1. Standardized residuals are random and have no trend
+#2. ACF of residuals are with in the significance levels, with only 1 out of 20 beyond them, which is expected.
+#3. There are high p-values suggesting a good model fit. (residuals are consistent with white noise)
+#Just to confirm the model is correct, we use the auto.arima function
+usarima <- auto.arima(UP, d = 2, max.p = 5, max.q = 5)
+usarima
+
+uplogforecast <- predict(up1, n.ahead = 1)
+uplogforecast
+
+#Transform the data
+upforecast <- round(2.718^uplogforecast$pred, 2)
+upforecast
